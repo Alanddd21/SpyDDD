@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spy Game Referee</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Share Tech Mono', monospace;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.light {
+      background: url('https://images.unsplash.com/photo-1526378722484-d73404c59bfa?fit=crop&w=1920&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: #f1f1f1;
+    }
+    body.light::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: -1;
+    }
+    body.dark {
+      background: #000;
+      color: #ccc;
+    }
+    #container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2em;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      animation: glitch 2s infinite;
+    }
+    @keyframes glitch {
+      0% { text-shadow: 1px 0 red; }
+      20% { text-shadow: -1px 0 blue; }
+      40% { text-shadow: 1px 0 green; }
+      60% { text-shadow: -1px 0 cyan; }
+      80% { text-shadow: 2px 0 yellow; }
+      100% { text-shadow: 1px 0 red; }
+    }
+    button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 5px;
+      border: 1px solid #888;
+      backdrop-filter: blur(6px);
+      background: rgba(255, 255, 255, 0.1);
+      color: inherit;
+    }
+    body.dark button {
+      background: #111;
+      color: #f1f1f1;
+      border: 1px solid #555;
+    }
+    .playerInput {
+      display: flex;
+      align-items: center;
+      margin: 5px auto;
+      width: 90%;
+      max-width: 400px;
+      backdrop-filter: blur(6px);
+      background: rgba(255,255,255,0.1);
+      border-radius: 5px;
+      border: 1px solid #888;
+    }
+    .playerInput input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      background: transparent;
+      color: inherit;
+    }
+    .playerInput button.removeBtn {
+      background: transparent;
+      border: none;
+      color: #ff4d4d;
+      font-size: 20px;
+      padding: 0 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    .playerInput button.removeBtn:hover {
+      color: #ff0000;
+      transform: scale(1.2);
+    }
+    .card {
+      margin: 20px auto;
+      padding: 20px;
+      width: 250px;
+      font-size: 20px;
+    }
+    body.light .card {
+      border: 2px solid #00ffcc;
+      background: rgba(0, 0, 0, 0.4);
+      color: #00ffcc;
+      backdrop-filter: blur(8px);
+    }
+    body.dark .card {
+      border: 2px solid #666;
+      background: #111;
+      color: #eee;
+    }
+    #themeToggle {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 14px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    .hidden {
+      display: none;
+    }
+    button:hover {
+      background-color: #00ffaa;
+      color: #000;
+      transition: 0.3s;
+    }
+    #credit {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      font-family: 'Share Tech Mono', monospace;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+    body.light #credit {
+      color: #00ffcc;
+      text-shadow: 0 0 2px #00ffcc;
+    }
+    body.dark #credit {
+      color: #888;
+    }
+    .collapsibleContent {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .collapsibleContent label {
+      width: 200px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body class="light">
+  <div id="container">
+    <button id="themeToggle">🌙 Dark Mode</button>
+    <h1>🕵️ SPY GAME</h1>
+
+    <div id="setup">
+      <p>Enter player names:</p>
+      <div id="playerInputs"></div>
+      <button onclick="addPlayerInput()">➕ Add Player</button>
+
+      <button class="toggleBtn" id="categoryToggleBtn" aria-expanded="false" aria-controls="categorySelectors">
+        ▶️ Choose categories
+      </button>
+      <div id="categorySelectors" class="collapsibleContent" aria-hidden="true">
+        <label><input type="checkbox" id="catPlaces" checked> Places</label>
+        <label><input type="checkbox" id="catCountries" checked> Countries</label>
+        <label><input type="checkbox" id="catObjects" checked> Objects</label>
+        <label><input type="checkbox" id="catJobs" checked> Jobs</label>
+        <label><input type="checkbox" id="catAnimals" checked> Animals</label>
+        <label><input type="checkbox" id="catFood" checked> Food</label>
+        <label><input type="checkbox" id="catMovies" checked> Movies</label>
+      </div>
+
+      <button class="toggleBtn" id="spyToggleBtn" aria-expanded="false" aria-controls="spySelectors">
+        ▶️ Choose number of spies
+      </button>
+      <div id="spySelectors" class="collapsibleContent" aria-hidden="true">
+        <label><input type="radio" name="spyCount" value="1" checked> 1 Spy</label>
+        <label><input type="radio" name="spyCount" value="2"> 2 Spies</label>
+        <label><input type="radio" name="spyCount" value="3"> 3 Spies</label>
+      </div>
+
+      <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="game" class="hidden">
+      <h2>Pass to: <span id="currentPlayerName"></span></h2>
+      <button onclick="showRole()">🔍 Reveal Role</button>
+      <div id="roleCard" class="card hidden"></div>
+      <button onclick="nextPlayer()" class="hidden" id="nextBtn">Next Agent</button>
+    </div>
+  </div>
+
+  <div id="credit">🎮 Created by Aland Haval</div>
+<script>
+  const playerInputs = document.getElementById("playerInputs");
+
+  function addPlayerInput(value = "") {
+    const wrapper = document.createElement("div");
+    wrapper.className = "playerInput";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Player name";
+    input.value = value;
+
+    wrapper.appendChild(input);
+    if (playerInputs.children.length >= 3) {
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "✖️";
+      removeBtn.className = "removeBtn";
+      removeBtn.onclick = () => playerInputs.removeChild(wrapper);
+      wrapper.appendChild(removeBtn);
+    }
+    playerInputs.appendChild(wrapper);
+  }
+
+  const sessionNames = sessionStorage.getItem("sessionNames");
+  if (sessionNames) {
+    JSON.parse(sessionNames).forEach(n => addPlayerInput(n));
+  } else {
+    for (let i = 0; i < 3; i++) addPlayerInput();
+  }
+
+  function collapseDefaults() {
+    const panels = [
+      { btn: "categoryToggleBtn", panel: "categorySelectors", label: "Choose categories" },
+      { btn: "spyToggleBtn", panel: "spySelectors", label: "Choose number of spies" }
+    ];
+    panels.forEach(({ btn, panel, label }) => {
+      const button = document.getElementById(btn);
+      const content = document.getElementById(panel);
+      content.style.display = "none";
+      content.setAttribute("aria-hidden", "true");
+      button.textContent = `▶️ ${label}`;
+      button.setAttribute("aria-expanded", "false");
+    });
+  }
+  collapseDefaults();
+
+  function togglePanel(buttonId, panelId) {
+    const btn = document.getElementById(buttonId);
+    const panel = document.getElementById(panelId);
+    const isHidden = panel.style.display === "none" || panel.style.display === "";
+    panel.style.display = isHidden ? "flex" : "none";
+    btn.textContent = isHidden ? btn.textContent.replace("▶️", "▼") : btn.textContent.replace("▼", "▶️");
+  }
+
+  document.getElementById("categoryToggleBtn").onclick = () => togglePanel("categoryToggleBtn", "categorySelectors");
+  document.getElementById("spyToggleBtn").onclick = () => togglePanel("spyToggleBtn", "spySelectors");
+
+  document.getElementById("themeToggle").onclick = () => {
+    document.body.classList.toggle("light");
+    document.body.classList.toggle("dark");
+    document.getElementById("themeToggle").textContent =
+      document.body.classList.contains("dark") ? "🌞 Light Mode" : "🌙 Dark Mode";
+  };
+
+  function startGame() {
+    const names = [...playerInputs.querySelectorAll("input")].map(i => i.value.trim()).filter(n => n !== "");
+    if (names.length < 3) return alert("Enter at least 3 players!");
+    sessionStorage.setItem("sessionNames", JSON.stringify(names));
+
+    const spyCount = parseInt(document.querySelector('input[name="spyCount"]:checked').value);
+    const wordList = [];
+
+    // ✅ ALL 7 CATEGORIES SAFELY SPLIT
+    if (document.getElementById("catPlaces").checked) {
+      wordList.push("School", "Airport", "Library", "Jungle", "Bank");
+      wordList.push("Beach", "Cave", "Hospital", "Hotel", "Restaurant");
+      wordList.push("Farm", "Park", "Theater", "Cemetery", "Bridge");
+      wordList.push("Camp", "Church", "Mosque", "Mall", "Amusement Park");
+      wordList.push("Bus Station", "Train Station", "Garage", "Bakery", "Swimming Pool");
+      wordList.push("Gym", "Cinema", "Zoo", "Desert", "Forest");
+      wordList.push("Mountain", "Castle", "Harbor", "Lighthouse", "Tower");
+      wordList.push("Tunnel", "Factory", "Stadium", "Schoolyard", "Playground");
+      wordList.push("Prison", "Fire Station", "Police Station", "Classroom", "Dormitory");
+      wordList.push("Bathroom", "Living Room", "Kitchen", "Backyard", "Garden");
+      wordList.push("Market", "Palace", "Workshop", "Laboratory", "Barn");
+      wordList.push("Café", "Subway", "Ruins", "Temple", "Fountain");
+      wordList.push("Office", "Observatory", "Gallery", "Port");
+    }
+
+    if (document.getElementById("catCountries").checked) {
+      wordList.push("Iraq", "Germany", "Japan", "Brazil", "France");
+      wordList.push("Italy", "China", "India", "Russia", "Egypt");
+      wordList.push("Turkey", "USA", "UK", "Canada", "Mexico");
+      wordList.push("Argentina", "Australia", "South Korea", "Iran", "Spain");
+      wordList.push("Saudi Arabia", "Pakistan", "Afghanistan", "Syria", "Lebanon");
+      wordList.push("Sudan", "Algeria", "Morocco", "Tunisia", "South Africa");
+      wordList.push("Nigeria", "Kenya", "Ethiopia", "Greece", "Sweden");
+      wordList.push("Norway", "Denmark", "Finland", "Poland", "Ukraine");
+      wordList.push("Thailand", "Vietnam", "Philippines", "Indonesia", "Malaysia");
+      wordList.push("Kazakhstan", "Uzbekistan", "Bangladesh", "Sri Lanka", "Nepal");
+      wordList.push("Qatar", "UAE", "Kuwait", "Jordan", "Libya");
+      wordList.push("Oman", "Yemen", "Belgium", "Switzerland", "Netherlands");
+      wordList.push("Portugal", "Austria", "Czech Republic", "Romania", "Hungary");
+    }
+
+    if (document.getElementById("catObjects").checked) {
+      wordList.push("Pen", "Camera", "Knife", "Watch", "Phone");
+      wordList.push("Laptop", "Mirror", "Spoon", "Fork", "Cup");
+      wordList.push("Bottle", "Bag", "Book", "Chair", "Table");
+      wordList.push("Clock", "Scissors", "Key", "Wallet", "Pillow");
+      wordList.push("Blanket", "Shoe", "Sock", "Hat", "Helmet");
+      wordList.push("Brush", "Comb", "Box", "Candle", "Remote");
+      wordList.push("TV", "Speaker", "Fan", "Bulb", "Plug");
+      wordList.push("Chain", "Ring", "Bracelet", "Glove", "Rope");
+      wordList.push("Ladder", "Hammer", "Nail", "Screwdriver", "Drill");
+      wordList.push("Broom", "Mop", "Towel", "Toothbrush", "Toothpaste");
+      wordList.push("Sunglasses", "Ball", "Toy", "Notebook", "Ruler");
+      wordList.push("Envelope", "Charger", "Map", "Shoelace", "Badge");
+      wordList.push("Sticker", "Flashlight", "Medal", "Vase", "Calculator");
+    }
+
+    if (document.getElementById("catJobs").checked) {
+      wordList.push("Spy", "Doctor", "Guard", "Chef", "Teacher");
+      wordList.push("Engineer", "Farmer", "Pilot", "Driver", "Artist");
+      wordList.push("Actor", "Singer", "Soldier", "Scientist", "Judge");
+      wordList.push("Lawyer", "Firefighter", "Police", "Nurse", "Dentist");
+      wordList.push("Waiter", "Janitor", "Plumber", "Electrician", "Mechanic");
+      wordList.push("Photographer", "Writer", "Journalist", "Translator", "Architect");
+      wordList.push("Cashier", "Barber", "Veterinarian", "Pharmacist", "Programmer");
+      wordList.push("Designer", "Tailor", "Carpenter", "Cleaner", "Dancer");
+      wordList.push("Athlete", "Librarian", "Magician", "Politician", "Banker");
+      wordList.push("Butcher", "Postman", "Flight Attendant", "Paramedic", "Coach");
+      wordList.push("Astronaut", "Miner", "Model", "Musician", "Gardener");
+      wordList.push("Blacksmith", "Delivery Man", "YouTuber", "Taxi Driver", "Tour Guide");
+      wordList.push("Zookeeper", "Geologist", "Therapist", "Receptionist", "Inspector");
+    }
+
+    if (document.getElementById("catAnimals").checked) {
+      wordList.push("Cat", "Elephant", "Kangaroo", "Snake", "Dog");
+      wordList.push("Lion", "Tiger", "Bear", "Fox", "Wolf");
+      wordList.push("Giraffe", "Zebra", "Horse", "Sheep", "Goat");
+      wordList.push("Cow", "Camel", "Monkey", "Donkey", "Rabbit");
+      wordList.push("Mouse", "Rat", "Pig", "Deer", "Turtle");
+      wordList.push("Frog", "Crocodile", "Lizard", "Eagle", "Owl");
+      wordList.push("Parrot", "Pigeon", "Sparrow", "Peacock", "Duck");
+      wordList.push("Goose", "Swan", "Bat", "Seal", "Whale");
+      wordList.push("Shark", "Dolphin", "Octopus", "Crab", "Ant");
+      wordList.push("Bee", "Wasp", "Spider", "Scorpion", "Butterfly");
+      wordList.push("Snail", "Caterpillar", "Hedgehog", "Mole", "Leopard");
+      wordList.push("Panther", "Hyena", "Turkey", "Chicken", "Rooster");
+      wordList.push("Flamingo", "Penguin", "Chameleon", "Koala", "Raccoon");
+    }
+
+    if (document.getElementById("catFood").checked) {
+      wordList.push("Pizza", "Burger", "Sushi", "Ice Cream", "Pasta");
+      wordList.push("Rice", "Noodles", "Kebab", "Falafel", "Soup");
+      wordList.push("Salad", "Bread", "Cake", "Cookie", "Candy");
+      wordList.push("Cheese", "Butter", "Yogurt", "Milk", "Juice");
+      wordList.push("Tea", "Coffee", "Steak", "Chicken", "Fish");
+      wordList.push("Egg", "Sandwich", "Fries", "Chips", "Donut");
+      wordList.push("Pancake", "Waffle", "Apple", "Banana", "Orange");
+      wordList.push("Mango", "Strawberry", "Grapes", "Watermelon", "Lemon");
+      wordList.push("Tomato", "Potato", "Carrot", "Onion", "Lettuce");
+      wordList.push("Cucumber", "Corn", "Peas", "Spinach", "Mushroom");
+      wordList.push("Hotdog", "Taco", "Nachos", "Lasagna", "Shawarma");
+      wordList.push("Meatball", "Curry", "Biryani", "Broccoli", "Avocado");
+      wordList.push("Chocolate", "Custard", "Pudding", "Pickles", "Omelette");
+    }
+
+    if (document.getElementById("catMovies").checked) {
+      wordList.push("Titanic", "Avatar", "Inception", "Gladiator", "Interstellar");
+      wordList.push("Avengers", "Iron Man", "Batman", "Joker", "Frozen");
+      wordList.push("Shrek", "Aladdin", "Moana", "Coco", "Toy Story");
+      wordList.push("Finding Nemo", "Cars", "Spiderman", "Black Panther", "Thor");
+      wordList.push("Doctor Strange", "The Lion King", "Up", "Ratatouille", "Monsters Inc");
+      wordList.push("Zootopia", "Kung Fu Panda", "The Matrix", "John Wick", "The Godfather");
+      wordList.push("Harry Potter", "The Hobbit", "Lord of the Rings", "The Hunger Games", "Twilight");
+      wordList.push("Pirates of the Caribbean", "The Incredibles", "Despicable Me", "Ice Age", "Madagascar");
+      wordList.push("Home Alone", "The Mask", "Minions", "Wall-E", "Big Hero 6");
+      wordList.push("Brave", "Mulan", "Beauty and the Beast", "Cinderella", "Sleeping Beauty");
+      wordList.push("Snow White", "Bambi", "The Good Dinosaur", "Inside Out", "Encanto");
+      wordList.push("Turning Red", "Soul", "The Croods", "Rio", "Tangled");
+      wordList.push("Hotel Transylvania", "Sing", "The Secret Life of Pets", "How to Train Your Dragon", "Clifford");
+    }
+
+    if (wordList.length === 0) return alert("Please choose at least one category!");
+
+    const word = wordList[Math.floor(Math.random() * wordList.length)];
+    const roles = names.map(() => "Agent");
+    for (let i = 0; i < spyCount; i++) {
+      let index;
+      do {
+        index = Math.floor(Math.random() * names.length);
+      } while (roles[index] === "Spy");
+      roles[index] = "Spy";
+    }
+
+    let currentPlayer = 0;
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+    document.getElementById("currentPlayerName").textContent = names[currentPlayer];
+
+    window.showRole = function () {
+      const role = roles[currentPlayer];
+      document.getElementById("roleCard").textContent = role === "Spy" ? "❗ You are the SPY!" : `✅ Word: ${word}`;
+      document.getElementById("roleCard").classList.remove("hidden");
+      document.getElementById("nextBtn").classList.remove("hidden");
+    };
+
+    window.nextPlayer = function () {
+      document.getElementById("roleCard").classList.add("hidden");
+      document.getElementById("nextBtn").classList.add("hidden");
+      currentPlayer++;
+      if (currentPlayer >= names.length) {
+        alert("All roles revealed. Let the game begin!");
+        document.getElementById("setup").classList.remove("hidden");
+        document.getElementById("game").classList.add("hidden");
+      } else {
+        document.getElementById("currentPlayerName").textContent = names[currentPlayer];
+      }
+    };
+  }
+</script>
+</body>
+</html>
